@@ -117,36 +117,38 @@ echo "Proteins file: ${PROTEINS:-none (prokka default)}"
 echo "Output directory: $OUTPUT_DIR"
 echo ""
 
+# Export static variables so run_prokka can access them from the environment
+export PROKKA_PROTEINS="$PROTEINS"
+export PROKKA_OUTPUT_DIR="$OUTPUT_DIR"
+export PROKKA_TOTAL="$ASSEMBLY_COUNT"
+export PROKKA_CPUS="$CPUS"
+
 # Define the prokka function for parallel
 run_prokka() {
     fasta="$1"
-    proteins="$2"
-    output_dir="$3"
-    current="$4"
-    total="$5"
-    cpus="$6"
+    current="$2"
     # Remove both .fasta and .fna extensions
     basename=$(basename "$fasta" .fasta)
     basename=$(basename "$basename" .fna)
 
-    echo "[$current/$total] Processing: $basename"
+    echo "[$current/$PROKKA_TOTAL] Processing: $basename"
     proteins_arg=()
-    [[ -n "$proteins" ]] && proteins_arg=(--proteins "$proteins")
+    [[ -n "$PROKKA_PROTEINS" ]] && proteins_arg=(--proteins "$PROKKA_PROTEINS")
     prokka "${proteins_arg[@]}" \
-           --cpus "$cpus" \
+           --cpus "$PROKKA_CPUS" \
            --compliant \
            --force \
-           --outdir "${output_dir}/${basename}" \
+           --outdir "${PROKKA_OUTPUT_DIR}/${basename}" \
            --prefix "${basename}" \
            --quiet \
            "$fasta"
-    echo "[$current/$total] Completed: $basename"
+    echo "[$current/$PROKKA_TOTAL] Completed: $basename"
 }
 
 export -f run_prokka
 
 # Run prokka in parallel with progress tracking
-echo "$ASSEMBLIES" | parallel -j "$JOBS" run_prokka {} "$PROTEINS" "$OUTPUT_DIR" {#} "$ASSEMBLY_COUNT" "$CPUS"
+echo "$ASSEMBLIES" | parallel -j "$JOBS" run_prokka {} {#}
 
 echo ""
 echo "All $ASSEMBLY_COUNT assemblies processed!"
