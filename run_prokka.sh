@@ -146,7 +146,7 @@ run_prokka() {
 export -f run_prokka
 
 # Run prokka in parallel with progress tracking
-echo "$ASSEMBLIES" | nl -n ln | parallel -j "$JOBS" --colsep '\t' run_prokka {2} "$PROTEINS" "$OUTPUT_DIR" {1} "$ASSEMBLY_COUNT" "$CPUS"
+echo "$ASSEMBLIES" | parallel -j "$JOBS" run_prokka {} "$PROTEINS" "$OUTPUT_DIR" {#} "$ASSEMBLY_COUNT" "$CPUS"
 
 echo ""
 echo "All $ASSEMBLY_COUNT assemblies processed!"
